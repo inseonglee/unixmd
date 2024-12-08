@@ -397,19 +397,19 @@ class SHXF(MQC_QED):
                 b = 1.
                 det = 1.
                 if (self.hop_rescale == "velocity"):
-                    a = np.sum(self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate] ** 2., axis=1))
-                    b = 2. * np.sum(self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate] \
+                    a = np.sum(self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] ** 2., axis=1))
+                    b = 2. * np.sum(self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] \
                         * self.pol.vel[0:self.pol.nat_qm], axis=1))
                     c = 2. * pot_diff
                     det = b ** 2. - 4. * a * c
                 elif (self.hop_rescale == "momentum"):
-                    a = np.sum(1. / self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate] ** 2., axis=1))
-                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate] * self.pol.vel[0:self.pol.nat_qm], axis=1))
+                    a = np.sum(1. / self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] ** 2., axis=1))
+                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] * self.pol.vel[0:self.pol.nat_qm], axis=1))
                     c = 2. * pot_diff
                     det = b ** 2. - 4. * a * c
                 elif (self.hop_rescale == "augment"):
-                    a = np.sum(1. / self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate] ** 2., axis=1))
-                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate] * self.pol.vel[0:self.pol.nat_qm], axis=1))
+                    a = np.sum(1. / self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] ** 2., axis=1))
+                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] * self.pol.vel[0:self.pol.nat_qm], axis=1))
                     c = 2. * pot_diff
                     det = b ** 2. - 4. * a * c
 
@@ -468,15 +468,15 @@ class SHXF(MQC_QED):
                         self.pol.vel[0:self.pol.nat_qm] *= x
 
                     elif (self.hop_rescale == "velocity"):
-                        self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate]
+                        self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm]
 
                     elif (self.hop_rescale == "momentum"):
-                        self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate] / \
+                        self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] / \
                             self.pol.mass[0:self.pol.nat_qm].reshape((-1, 1))
 
                     elif (self.hop_rescale == "augment"):
                         if (det > 0. or self.pol.ekin_qm < pot_diff):
-                            self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate] / \
+                            self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] / \
                                 self.pol.mass[0:self.pol.nat_qm].reshape((-1, 1))
                         else:
                             self.pol.vel[0:self.pol.nat_qm] *= x

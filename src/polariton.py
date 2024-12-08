@@ -181,7 +181,7 @@ class Polariton(object):
         self.nac = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
         self.nac_old = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
 
-        self.pnac = np.zeros((self.pst, self.pst, self.nat_qm, self.ndim))
+        self.pnac = np.zeros((self.pst, self.pst, self.nat, self.ndim))
         self.rho_a = np.zeros((self.pst, self.pst), dtype=np.complex128)
         self.rho_d = np.zeros((self.pst, self.pst), dtype=np.complex128)
 
@@ -335,7 +335,7 @@ class Polariton(object):
         """
         for ist in range(self.pst):
             for jst in range(ist + 1, self.pst):
-                self.pnacme[ist, jst] = np.sum(self.pnac[ist, jst] * self.vel[0:self.nat_qm])
+                self.pnacme[ist, jst] = np.sum(self.pnac[ist, jst, 0:self.nat_qm] * self.vel[0:self.nat_qm])
                 self.pnacme[jst, ist] = - self.pnacme[ist, jst]
 
     def update_kinetic(self):
@@ -383,7 +383,7 @@ class Polariton(object):
         if (calc_coupling):
             self.pnacme = np.zeros((self.pst, self.pst))
             if (not self.l_pnacme):
-                self.pnac = np.zeros((self.pst, self.pst, self.nat_qm, self.ndim))
+                self.pnac = np.zeros((self.pst, self.pst, self.nat, self.ndim))
 
     def backup_bo(self, calc_coupling, calc_tdp):
         """ Backup nonadiabatic couplings and transition dipoles
