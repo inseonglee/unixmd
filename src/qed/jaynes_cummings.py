@@ -378,6 +378,10 @@ class Jaynes_Cummings(QED_calculator):
 
                         # First term: CI term (diagonal contribution)
                         # Loop for diabatic states
+                        # TODO : For QM/MM simulation, the forces of MM atoms affects the pNACVs
+                        # However, we ignore the MM contribution for surface hopping dynamics
+                        # From the energy conservation in Ehrenfest dynamics, we can check whether
+                        # the MM contribution should be considered or not
                         for ast in range(polariton.pst):
                             ind_mol1 = self.get_d_ind[ast, 0]
                             qed_nac[0:polariton.nat_qm] -= polariton.states[ind_mol1].force[0:polariton.nat_qm] \
