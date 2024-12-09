@@ -335,7 +335,7 @@ class Polariton(object):
         """
         for ist in range(self.pst):
             for jst in range(ist + 1, self.pst):
-                self.pnacme[ist, jst] = np.sum(self.pnac[ist, jst, 0:self.nat_qm] * self.vel[0:self.nat_qm])
+                self.pnacme[ist, jst] = np.sum(self.pnac[ist, jst] * self.vel)
                 self.pnacme[jst, ist] = - self.pnacme[ist, jst]
 
     def update_kinetic(self):

@@ -333,19 +333,19 @@ class SH(MQC_QED):
                 b = 1.
                 det = 1.
                 if (self.hop_rescale == "velocity"):
-                    a = np.sum(self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] ** 2., axis=1))
-                    b = 2. * np.sum(self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] \
-                        * self.pol.vel[0:self.pol.nat_qm], axis=1))
+                    a = np.sum(self.pol.mass * np.sum(self.pol.pnac[self.rstate_old, self.rstate] ** 2., axis=1))
+                    b = 2. * np.sum(self.pol.mass * np.sum(self.pol.pnac[self.rstate_old, self.rstate] \
+                        * self.pol.vel, axis=1))
                     c = 2. * pot_diff
                     det = b ** 2. - 4. * a * c
                 elif (self.hop_rescale == "momentum"):
-                    a = np.sum(1. / self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] ** 2., axis=1))
-                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] * self.pol.vel[0:self.pol.nat_qm], axis=1))
+                    a = np.sum(1. / self.pol.mass * np.sum(self.pol.pnac[self.rstate_old, self.rstate] ** 2., axis=1))
+                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate] * self.pol.vel, axis=1))
                     c = 2. * pot_diff
                     det = b ** 2. - 4. * a * c
                 elif (self.hop_rescale == "augment"):
-                    a = np.sum(1. / self.pol.mass[0:self.pol.nat_qm] * np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] ** 2., axis=1))
-                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] * self.pol.vel[0:self.pol.nat_qm], axis=1))
+                    a = np.sum(1. / self.pol.mass * np.sum(self.pol.pnac[self.rstate_old, self.rstate] ** 2., axis=1))
+                    b = 2. * np.sum(np.sum(self.pol.pnac[self.rstate_old, self.rstate] * self.pol.vel, axis=1))
                     c = 2. * pot_diff
                     det = b ** 2. - 4. * a * c
 
@@ -356,6 +356,7 @@ class SH(MQC_QED):
                 if (self.hop_rescale == "energy" and self.pol.ekin_qm < eps):
                     self.l_reject = True
                 # Clasically forbidden hop due to lack of kinetic energy
+                # TODO : Should we use ekin or ekin_qm for comparison with potential difference?
                 if (self.pol.ekin_qm < pot_diff):
                     self.l_reject = True
                 # Kinetic energy is enough, but there is no solution for scaling factor
@@ -367,6 +368,7 @@ class SH(MQC_QED):
 
                 if (self.l_reject):
                     # Record event for frustrated hop
+                    # TODO : Should we use ekin or ekin_qm for hopping reject?
                     if (self.pol.ekin_qm < pot_diff):
                         self.event["HOP"].append(f"Reject hopping: smaller kinetic energy than potential energy difference between {self.rstate} and {self.rstate_old}")
                     # Set scaling constant with respect to 'hop_reject'
@@ -384,6 +386,7 @@ class SH(MQC_QED):
                     if (self.hop_rescale == "energy" or (det < 0. and self.hop_rescale == "augment")):
                         if (det < 0.):
                             self.event["HOP"].append("Accept hopping: no solution to find rescale factor, but velocity is simply rescaled")
+                        # TODO : Should we use ekin or ekin_qm for isotropic rescaling?
                         x = np.sqrt(1. - pot_diff / self.pol.ekin_qm)
                     else:
                         if (b < 0.):
@@ -394,20 +397,22 @@ class SH(MQC_QED):
                 # Rescale velocities for QM atoms
                 if (not (self.hop_reject == "keep" and self.l_reject)):
                     if (self.hop_rescale == "energy"):
+                        # TODO : Should we use ekin or ekin_qm for isotropic rescaling?
                         self.pol.vel[0:self.pol.nat_qm] *= x
 
                     elif (self.hop_rescale == "velocity"):
-                        self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm]
+                        self.pol.vel += x * self.pol.pnac[self.rstate_old, self.rstate]
 
                     elif (self.hop_rescale == "momentum"):
-                        self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] / \
-                            self.pol.mass[0:self.pol.nat_qm].reshape((-1, 1))
+                        self.pol.vel += x * self.pol.pnac[self.rstate_old, self.rstate] / \
+                            self.pol.mass.reshape((-1, 1))
 
                     elif (self.hop_rescale == "augment"):
                         if (det > 0. or self.pol.ekin_qm < pot_diff):
-                            self.pol.vel[0:self.pol.nat_qm] += x * self.pol.pnac[self.rstate_old, self.rstate, 0:self.pol.nat_qm] / \
-                                self.pol.mass[0:self.pol.nat_qm].reshape((-1, 1))
+                            self.pol.vel += x * self.pol.pnac[self.rstate_old, self.rstate] / \
+                                self.pol.mass.reshape((-1, 1))
                         else:
+                            # TODO : Should we use ekin or ekin_qm for isotropic rescaling?
                             self.pol.vel[0:self.pol.nat_qm] *= x
 
                 # Update kinetic energy
